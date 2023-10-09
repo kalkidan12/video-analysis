@@ -4,6 +4,7 @@ import cv2
 import pytube
 from PIL import Image, ImageDraw
 import numpy as np
+import datetime
 
 import torch
 from flask import Flask, request, jsonify
@@ -65,6 +66,8 @@ def process_video_url(request):
 
     detected_objects_list = []  # List to store detected objects
 
+    frame_number = 0
+    frame_rate = cap.get(cv2.CAP_PROP_FPS)  # Get the frame rate
     while cap.isOpened():
         ret, frame = cap.read()
         if not ret:
@@ -74,7 +77,17 @@ def process_video_url(request):
         results = model(img, size=640)
 
         detected_objects = results.pandas().xyxy[0].to_dict(orient="records")
+
+        for obj in detected_objects:
+            # Calculate the timestamp using frame number and frame rate
+            timestamp = frame_number / frame_rate
+            obj["frame_number"] = frame_number
+            # Convert timestamp to human-readable format
+            timestamp_hms = str(datetime.timedelta(seconds=timestamp))
+            obj["timestamp"] = timestamp_hms
+
         detected_objects_list.extend(detected_objects)
+        frame_number += 1
 
     cap.release()
 
@@ -121,7 +134,7 @@ def process_local_video_file(video_path):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Flask API exposing yolov5 model")
-    parser.add_argument("--port", default=5000, type=int, help="port number")
+    parser.add_argument("--port", default=4000, type=int, help="port number")
     parser.add_argument('--model', default='yolov5s',
                         help='model to run, i.e. --model yolov5s')
     args = parser.parse_args()
