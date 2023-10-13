@@ -136,7 +136,7 @@ if __name__ == "__main__":
         description="Flask API exposing yolov5 model")
     parser.add_argument("--port", default=4000, type=int, help="port number")
     parser.add_argument('--model', default='yolov5s',
-                        help='model to run, i.e. --model yolov5s')
+                        help='model to run, i.e. --model yolov5x')
     args = parser.parse_args()
 
     model = torch.hub.load('ultralytics/yolov5', args.model)
